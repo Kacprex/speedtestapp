@@ -34,40 +34,37 @@ def get_internet_speed():
 def run_speed_test():
     try:
         if check_internet_connection():
-            status_label.config(text="Internet speed test in progress...", fg="white")
-            results_label.config(text="", fg="white")
+            window.after(0, lambda: status_label.config(text="Internet speed test in progress...", fg="white"))
+            window.after(0, lambda: results_label.config(text="", fg="white"))
             animate_text()
-            window.update()
             
             download_speed, upload_speed, ping = get_internet_speed()
             speed_results.append((download_speed, upload_speed, ping))
 
-            stop_animation()
+            window.after(0, stop_animation)
 
             result_text = (f"Download Speed: {download_speed:.2f} Mbps\n"
                            f"Upload Speed: {upload_speed:.2f} Mbps\n"
                            f"Ping: {ping:.0f} ms")
-            status_label.config(text="Internet speed test completed.", fg="white")
-            results_label.config(text=result_text, fg="white")
-
-            update_speed_table()
+            window.after(0, lambda: status_label.config(text="Internet speed test completed.", fg="white"))
+            window.after(0, lambda: results_label.config(text=result_text, fg="white"))
+            window.after(0, update_speed_table)
 
             if popup and popup.winfo_exists():
-                popup.destroy()
+                window.after(0, popup.destroy)
 
             if graph_frame.winfo_ismapped():  # If graph is visible, update it
-                update_graph()
-
+                window.after(0, update_graph)
         else:
-            status_label.config(text="No internet connection detected.", fg="red")
-            results_label.config(text="Please check your connection and try again.", fg="red")
-            stop_animation()
-            create_popup()
+            window.after(0, lambda: status_label.config(text="No internet connection detected.", fg="red"))
+            window.after(0, lambda: results_label.config(text="Please check your connection and try again.", fg="red"))
+            window.after(0, stop_animation)
+            window.after(0, create_popup)
     except Exception as e:
-        status_label.config(text="Error occurred during the test.", fg="red")
-        results_label.config(text=f"Error: {str(e)}", fg="red")
-        stop_animation()
-        create_popup()
+        window.after(0, lambda: status_label.config(text="Error occurred during the test.", fg="red"))
+        window.after(0, lambda: results_label.config(text=f"Error: {str(e)}", fg="red"))
+        window.after(0, stop_animation)
+        window.after(0, create_popup)
 
 def create_popup():
     global popup
@@ -140,15 +137,12 @@ def update_graph():
     canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
 def switch_to_table():
-    # Hide graph
     graph_frame.pack_forget()  # Hide graph
     table_frame.pack(fill="both", expand=True)  # Show table
 
 def switch_to_graph():
-    # Hide table
     table_frame.pack_forget()  # Hide table
     graph_frame.pack(fill="both", expand=True)  # Show graph
-
     update_graph()  # Automatically update the graph when switching to it
 
 def threaded_speed_test():
@@ -165,18 +159,16 @@ def on_mouse_wheel(event):
 window = tk.Tk()
 window.title("Internet Speed Test App")
 window.geometry("700x500")
-window.resizable(True, True)  # Make the window resizable in both directions
-window.configure(bg="#2E2E2E")  # Dark background
+window.resizable(True, True)
+window.configure(bg="#2E2E2E")
 
-# Status and results label
 status_label = tk.Label(window, text="Starting automatic speed tests...", wraplength=300, bg="#2E2E2E", fg="white")
 status_label.pack(pady=10)
 results_label = tk.Label(window, text="", wraplength=300, justify="center", bg="#2E2E2E", fg="white")
 results_label.pack(pady=10)
 
-# Buttons to switch between table and graph, centered below the status and results labels
 button_frame = tk.Frame(window, bg="#2E2E2E")
-button_frame.pack(pady=10)  # Pack the button frame first to keep it on top
+button_frame.pack(pady=10)
 
 switch_table_button = tk.Button(button_frame, text="Show Table", command=switch_to_table, bg="#444444", fg="white", activebackground="#555555", activeforeground="white")
 switch_table_button.grid(row=0, column=0, padx=10, pady=5)
@@ -184,7 +176,6 @@ switch_table_button.grid(row=0, column=0, padx=10, pady=5)
 switch_graph_button = tk.Button(button_frame, text="Show Graph", command=switch_to_graph, bg="#444444", fg="white", activebackground="#555555", activeforeground="white")
 switch_graph_button.grid(row=0, column=1, padx=10, pady=5)
 
-# Frame for the table
 table_frame = tk.Frame(window, bg="#2E2E2E")
 table_label = tk.Text(table_frame, width=70, height=15, font=("Courier New", 10), wrap="none", bg="#333333", fg="white", insertbackground="white")
 table_label.pack(pady=10, side=tk.LEFT, fill=tk.BOTH, expand=True)
@@ -194,15 +185,10 @@ table_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 table_label['yscrollcommand'] = table_scrollbar.set
 table_label.bind("<MouseWheel>", on_mouse_wheel)
 
-# Frame for the graph
 graph_frame = tk.Frame(window, bg="#2E2E2E")
-graph_frame.pack(fill="both", expand=True)  # Show graph by default
+graph_frame.pack(fill="both", expand=True)
 
-# Global variable to keep track of the popup window
 popup = None
 
-# Start the app with auto-running speed test every 30 seconds
 window.after(0, auto_run_speed_test)
-
-# Start the Tkinter event loop
 window.mainloop()
